@@ -31,17 +31,32 @@ class LinearNet(nn.Module):
         y = self.linear(x)
         return y
 
-net = LinearNet(num_inputs)
+# net = LinearNet(num_inputs)
+net = nn.Sequential()
+net.add_module('linear', nn.Linear(num_inputs, 1))
 print(net)
 print(type(net))
 
 for param in net.parameters():
     print(param)
 
-init.normal_(net.weight, mean=0, std=0.01)
-init.constant_(net.bias, val=0)
+init.normal_(net[0].weight, mean=0, std=0.01)
+init.constant_(net[0].bias, val=0)
 
 loss = nn.MSELoss()
 optimizer = optim.SGD(net.parameters(), lr=0.03)
 print(optimizer)
 
+num_epochs = 3
+for epoch in range(1, num_epochs + 1):
+    for X, y in data_iter:
+        output = net(X)
+        l = loss(output, y.view(-1, 1))
+        optimizer.zero_grad()
+        l.backward()
+        optimizer.step()
+    print('epoch %d, loss: %f' % (epoch, l.item()))
+
+dense = net[0]
+print(true_w, dense.weight)
+print(true_b, dense.bias)

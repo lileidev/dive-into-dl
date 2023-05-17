@@ -28,3 +28,8 @@ def sgd(params, lr, batch_size):
     for param in params:
         param.data -= lr * param.grad / batch_size
 
+
+def get_fashion_mnist_labels(labels):
+    text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat', 'sandal', 'shirt', 
+                   'sneaker', 'bag', 'ankle boot']
+    return [text_labels[int(i)] for i in labels]
