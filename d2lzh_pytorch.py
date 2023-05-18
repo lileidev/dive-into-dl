@@ -7,7 +7,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 def use_svg_display():
     display.set_matplotlib_formats('svg')
@@ -72,3 +72,11 @@ def load_data_fashion_mnist(batch_size):
                                             num_workers=num_workers)
     
     return train_iter, test_iter
+
+def evaluate_accuracy(data_iter, net):
+    acc_sum, n = 0.0, 0
+    for X, y in data_iter:
+        acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
+        n += y.shape[0]
+        
+    return acc_sum / n
