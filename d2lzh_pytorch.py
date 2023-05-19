@@ -3,11 +3,12 @@ import sys
 from IPython import display
 from matplotlib import pyplot as plt
 import torch
+import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
 import matplotlib
-# matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 
 def use_svg_display():
     display.set_matplotlib_formats('svg')
@@ -80,3 +81,38 @@ def evaluate_accuracy(data_iter, net):
         n += y.shape[0]
         
     return acc_sum / n
+
+class FlattenLayer(nn.Module):
+    def __init__(self):
+        super(FlattenLayer, self).__init__()
+    def forward(self, x):
+        return x.view(x.shape[0], -1)
+    
+
+def train_ch3(net, train_iter, test_iter, loss, num_epochs, batch_size, params=None, lr=None, optimizer=None):
+    for epoch in range(num_epochs):
+        train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
+        for X, y in train_iter:
+            X.cuda()
+            y.cuda()
+            y_hat = net(X)
+            l = loss(y_hat, y).sum()
+            
+            # 梯度清零
+            if optimizer is not None:
+                optimizer.zero_grad()
+            elif params is not None and params[0].grad is not None:
+                for param in params:
+                    param.grad.data.zero_()
+        
+            l.backward()
+            if optimizer is None:
+                sgd(params, lr, batch_size)
+            else:
+                optimizer.step()
+                
+            train_l_sum += l.item()
+            train_acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
+            n += y.shape[0]
+        test_acc = evaluate_accuracy(test_iter, net)
+        print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f' % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
